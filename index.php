@@ -6,6 +6,8 @@ include('bootstrap.php');
 use Phprestful\Models\Message;
 use Phprestful\Middleware\Logging as Logging;
 use Phprestful\Middleware\Authentication as Authentication;
+use Phprestful\Middleware\FileFilter as FileFilter;
+use Phprestful\Middleware\RemoveExifImage as RemoveExifImage;
 use \Symfony\Component\HttpFoundation\Request as Request;
 use \Symfony\Component\HttpFoundation\Response as Response;
 
@@ -37,16 +39,30 @@ $app->get('/messages', function() use ($app) {
     return json_encode($payload);
 });
 
+//upload files logic
+$filter = function(Request $request, \Silex\Application $app) {
+    $fileFilter = new FileFilter();
+    $filePath = $fileFilter->filter($_FILES, $app);
+    $request->headers->set('filePath', $filePath);
+};
+$removeExif = function(Request $request, \Silex\Application $app) {
+    $filePath = RemoveExifImage::removeExif($request->headers->get('filePath'));
+    $request->headers->set('filePath', $filePath);
+};
+
 $app->post('/message', function(Request $request) use ($app) {
     $_message = $request->get('message');
 
+    //preapre new message
     $message = new Message();
     $message->body = $_message;
     $message->user_id = 1;
-    $message->image_url = 'nothing';
+    $message->image_url = $request->headers->get('filePath');
 
+    //save message
     $message->save();
 
+    //response
     if($message->id) {
         $code = 201;
         $payload = [
@@ -59,7 +75,7 @@ $app->post('/message', function(Request $request) use ($app) {
     }
 
     return new Response('Message created at' . $message->created_at, $code);
-});
+})->before($filter)->before($removeExif);
 
 $app->delete('/message/{message_id}', function($message_id) use($app) {
     $message = Message::find($message_id);
