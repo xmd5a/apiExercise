@@ -8,6 +8,7 @@ use Phprestful\Middleware\Logging as Logging;
 use Phprestful\Middleware\Authentication as Authentication;
 use Phprestful\Middleware\FileFilter as FileFilter;
 use Phprestful\Middleware\RemoveExifImage as RemoveExifImage;
+use Phprestful\Middleware\FileMover as FileMover;
 use \Symfony\Component\HttpFoundation\Request as Request;
 use \Symfony\Component\HttpFoundation\Response as Response;
 
@@ -49,6 +50,11 @@ $removeExif = function(Request $request, \Silex\Application $app) {
     $filePath = RemoveExifImage::removeExif($request->headers->get('filePath'));
     $request->headers->set('filePath', $filePath);
 };
+$move = function(Request $request, \Silex\Application $app) {
+    $filePath = $request->headers->get('filePath');
+    $filePath = FileMover::move($filePath, $app);
+    $request->headers->set('filepath', $filePath);
+};
 
 $app->post('/message', function(Request $request) use ($app) {
     $_message = $request->get('message');
@@ -76,6 +82,7 @@ $app->post('/message', function(Request $request) use ($app) {
 
     return new Response('Message created at' . $message->created_at, $code);
 })->before($filter)->before($removeExif);
+//with Amazon's S3: })->before($filter)->before($removeExif)->before($move);
 
 $app->delete('/message/{message_id}', function($message_id) use($app) {
     $message = Message::find($message_id);

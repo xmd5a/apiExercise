@@ -1,7 +1,8 @@
 {
     "require": {
         "silex/silex": "~2.0",
-        "illuminate/database": "~5.2"
+        "illuminate/database": "~5.2",
+        "aws/aws-sdk-php": "^3.55"
     },
     "autoload": {
         "psr-4": {
