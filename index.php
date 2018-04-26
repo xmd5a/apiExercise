@@ -23,26 +23,7 @@ $app->before(function($request, $app) {
     Authentication::authenticate($request, $app);
 });
 
-$app->get('/messages', function() use ($app) {
-    $_message = new Message();
-
-    $messages = $_message->all();
-
-    $payload = [];
-    foreach ($messages as $_msg) {
-        $payload[$_msg->id] = [
-            'body' => $_msg->body,
-            'user_id' => $_msg->user_id,
-            'user_uri' => '/user/' . $_msg->user_id,
-            'created_at' => $_msg->created_at,
-            'image_url' => $_msg->image_url,
-            'message_id' => $_msg->id,
-            'message_uri' => '/message/' . $_msg->id
-        ];
-    }
-
-    return json_encode($payload);
-});
+$app->get('/messages', 'Phprestful\\Controllers\\Messages::getAll');
 
 //upload files logic
 $filter = function(Request $request, \Silex\Application $app) {
