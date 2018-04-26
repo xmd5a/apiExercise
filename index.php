@@ -4,7 +4,8 @@ require_once('vendor/autoload.php');
 include('bootstrap.php');
 
 use Phprestful\Models\Message;
-use Phprestful\Middleware as AppLogging;
+use Phprestful\Middleware\Logging as Logging;
+use Phprestful\Middleware\Authentication as Authentication;
 use \Symfony\Component\HttpFoundation\Request as Request;
 use \Symfony\Component\HttpFoundation\Response as Response;
 
@@ -14,8 +15,9 @@ ini_set('display_errors', 'On');
 error_reporting(E_ALL);
 
 //middleware
-$app->before(function ($request, $app) {
-    AppLogging\Logging::Log($request, $app);
+$app->before(function($request, $app) {
+    Logging::Log($request, $app);
+    Authentication::authenticate($request, $app);
 });
 
 $app->get('/messages', function() use ($app) {
