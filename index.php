@@ -33,7 +33,11 @@ $app->get('/messages', function() use ($app) {
         $payload[$_msg->id] = [
             'body' => $_msg->body,
             'user_id' => $_msg->user_id,
-            'created_at' => $_msg->created_at
+            'user_uri' => '/user/' . $_msg->user_id,
+            'created_at' => $_msg->created_at,
+            'image_url' => $_msg->image_url,
+            'message_id' => $_msg->id,
+            'message_uri' => '/message/' . $_msg->id
         ];
     }
 
@@ -73,14 +77,15 @@ $app->post('/message', function(Request $request) use ($app) {
         $code = 201;
         $payload = [
             'message_id' => $message->id,
-            'message_uri' => '/message/' . $message->id
+            'message_uri' => '/message/' . $message->id,
+            'image_url' => $message->image_url
         ];
     } else {
         $code = 400;
         $payload = [];
     }
 
-    return new Response('Message created at' . $message->created_at, $code);
+    return $app->json($payload, $code);
 })->before($filter)->before($removeExif);
 //with Amazon's S3: })->before($filter)->before($removeExif)->before($move);
 
